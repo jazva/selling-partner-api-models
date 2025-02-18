@@ -26,7 +26,7 @@
   "paths": {
     "/finances/v0/financialEventGroups": {
       "get": {
-        "description": "Returns financial event groups for a given date range.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
+        "description": "Returns financial event groups for a given date range. It may take up to 48 hours for orders to appear in your financial events.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
         "operationId": "listFinancialEventGroups",
         "parameters": [
           {
@@ -35,7 +35,7 @@
             "description": "The maximum number of results to return per page. If the response exceeds the maximum number of transactions or 10 MB, the API responds with 'InvalidInput'.",
             "required": false,
             "type": "integer",
-            "default": 100,
+            "default": 10,
             "maximum": 100,
             "minimum": 1,
             "format": "int32"
@@ -43,7 +43,7 @@
           {
             "name": "FinancialEventGroupStartedBefore",
             "in": "query",
-            "description": "A date used for selecting financial event groups that opened before (but not at) a specified date and time, in ISO 8601 format. The date-time  must be later than FinancialEventGroupStartedAfter and no later than two minutes before the request was submitted. If FinancialEventGroupStartedAfter and FinancialEventGroupStartedBefore are more than 180 days apart, no financial event groups are returned.",
+            "description": "A date used for selecting financial event groups that opened before (but not at) a specified date and time, in [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) format. The date-time  must be later than FinancialEventGroupStartedAfter and no later than two minutes before the request was submitted. If FinancialEventGroupStartedAfter and FinancialEventGroupStartedBefore are more than 180 days apart, no financial event groups are returned.",
             "required": false,
             "type": "string",
             "format": "date-time"
@@ -51,7 +51,7 @@
           {
             "name": "FinancialEventGroupStartedAfter",
             "in": "query",
-            "description": "A date used for selecting financial event groups that opened after (or at) a specified date and time, in ISO 8601 format. The date-time must be no later than two minutes before the request was submitted.",
+            "description": "A date used for selecting financial event groups that opened after (or at) a specified date and time, in [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) format. The date-time must be no later than two minutes before the request was submitted.",
             "required": false,
             "type": "string",
             "format": "date-time"
@@ -67,6 +67,16 @@
         "responses": {
           "200": {
             "description": "Success.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventGroupsResponse"
             },
@@ -121,6 +131,16 @@
           },
           "400": {
             "description": "Request has missing or invalid parameters and cannot be parsed.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventGroupsResponse"
             },
@@ -180,10 +200,6 @@
               "$ref": "#/definitions/ListFinancialEventGroupsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -196,10 +212,6 @@
               "$ref": "#/definitions/ListFinancialEventGroupsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -212,10 +224,6 @@
               "$ref": "#/definitions/ListFinancialEventGroupsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -227,7 +235,7 @@
     },
     "/finances/v0/financialEventGroups/{eventGroupId}/financialEvents": {
       "get": {
-        "description": "Returns all financial events for the specified financial event group.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
+        "description": "Returns all financial events for the specified financial event group. It may take up to 48 hours for orders to appear in your financial events.\n\n**Note:** This operation will only retrieve group's data for the past two years. If a request is submitted for data spanning more than two years, an empty response is returned.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
         "operationId": "listFinancialEventsByGroupId",
         "parameters": [
           {
@@ -244,7 +252,7 @@
           {
             "name": "PostedAfter",
             "in": "query",
-            "description": "A date used for selecting financial events posted after (or at) a specified time. The date-time **must** be more than two minutes before the time of the request, in ISO 8601 date time format.",
+            "description": "A date used for selecting financial events posted after (or at) a specified time. The date-time **must** be more than two minutes before the time of the request, in [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
             "required": false,
             "type": "string",
             "format": "date-time"
@@ -252,7 +260,7 @@
           {
             "name": "PostedBefore",
             "in": "query",
-            "description": "A date used for selecting financial events posted before (but not at) a specified time. The date-time must be later than `PostedAfter` and no later than two minutes before the request was submitted, in ISO 8601 date time format. If `PostedAfter` and `PostedBefore` are more than 180 days apart, no financial events are returned. You must specify the `PostedAfter` parameter if you specify the `PostedBefore` parameter. Default: Now minus two minutes.",
+            "description": "A date used for selecting financial events posted before (but not at) a specified time. The date-time must be later than `PostedAfter` and no later than two minutes before the request was submitted, in [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format. If `PostedAfter` and `PostedBefore` are more than 180 days apart, no financial events are returned. You must specify the `PostedAfter` parameter if you specify the `PostedBefore` parameter. Default: Now minus two minutes.",
             "required": false,
             "type": "string",
             "format": "date-time"
@@ -275,6 +283,16 @@
         "responses": {
           "200": {
             "description": "Success.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
@@ -643,6 +661,16 @@
           },
           "400": {
             "description": "Request has missing or invalid parameters and cannot be parsed.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
@@ -702,10 +730,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -718,10 +742,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -734,10 +754,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -749,7 +765,7 @@
     },
     "/finances/v0/orders/{orderId}/financialEvents": {
       "get": {
-        "description": "Returns all financial events for the specified order.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
+        "description": "Returns all financial events for the specified order. It may take up to 48 hours for orders to appear in your financial events.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
         "operationId": "listFinancialEventsByOrderId",
         "parameters": [
           {
@@ -781,6 +797,16 @@
         "responses": {
           "200": {
             "description": "Financial Events successfully retrieved.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
@@ -927,6 +953,16 @@
           },
           "400": {
             "description": "Request has missing or invalid parameters and cannot be parsed.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
@@ -986,10 +1022,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -1002,10 +1034,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -1018,10 +1046,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -1033,7 +1057,7 @@
     },
     "/finances/v0/financialEvents": {
       "get": {
-        "description": "Returns financial events for the specified data range.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
+        "description": "Returns financial events for the specified data range. It may take up to 48 hours for orders to appear in your financial events. **Note:** in `ListFinancialEvents`, deferred events don't show up in responses until in they are released.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 0.5 | 30 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
         "operationId": "listFinancialEvents",
         "parameters": [
           {
@@ -1050,7 +1074,7 @@
           {
             "name": "PostedAfter",
             "in": "query",
-            "description": "A date used for selecting financial events posted after (or at) a specified time. The date-time must be no later than two minutes before the request was submitted, in ISO 8601 date time format.",
+            "description": "A date used for selecting financial events posted after (or at) a specified time. The date-time must be no later than two minutes before the request was submitted, in [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
             "required": false,
             "type": "string",
             "format": "date-time"
@@ -1058,7 +1082,7 @@
           {
             "name": "PostedBefore",
             "in": "query",
-            "description": "A date used for selecting financial events posted before (but not at) a specified time. The date-time must be later than PostedAfter and no later than two minutes before the request was submitted, in ISO 8601 date time format. If PostedAfter and PostedBefore are more than 180 days apart, no financial events are returned. You must specify the PostedAfter parameter if you specify the PostedBefore parameter. Default: Now minus two minutes.",
+            "description": "A date used for selecting financial events posted before (but not at) a specified time. The date-time must be later than PostedAfter and no later than two minutes before the request was submitted, in [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format. If PostedAfter and PostedBefore are more than 180 days apart, no financial events are returned. You must specify the PostedAfter parameter if you specify the PostedBefore parameter. Default: Now minus two minutes.",
             "required": false,
             "type": "string",
             "format": "date-time"
@@ -1074,6 +1098,16 @@
         "responses": {
           "200": {
             "description": "Success.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
@@ -1216,6 +1250,16 @@
           },
           "400": {
             "description": "Request has missing or invalid parameters and cannot be parsed.",
+            "headers": {
+              "x-amzn-RateLimit-Limit": {
+                "description": "Your rate limit (requests per second) for this operation.",
+                "type": "string"
+              },
+              "x-amzn-RequestId": {
+                "description": "Unique request reference identifier.",
+                "type": "string"
+              }
+            },
             "schema": {
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
@@ -1275,10 +1319,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -1291,10 +1331,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -1307,10 +1343,6 @@
               "$ref": "#/definitions/ListFinancialEventsResponse"
             },
             "headers": {
-              "x-amzn-RateLimit-Limit": {
-                "type": "string",
-                "description": "Your rate limit (requests per second) for this operation.\n_Note:_ For this status code, the rate limit header is deprecated and no longer returned."
-              },
               "x-amzn-RequestId": {
                 "type": "string",
                 "description": "Unique request reference identifier."
@@ -1363,6 +1395,10 @@
           "description": "The date and time when the financial event was posted.",
           "$ref": "#/definitions/Date"
         },
+        "StoreName": {
+          "type": "string",
+          "description": "The name of the store where the event occurred."
+        },
         "AdjustmentAmount": {
           "description": "The amount adjusted as part of this event.",
           "$ref": "#/definitions/Currency"
@@ -1411,6 +1447,10 @@
         "ASIN": {
           "type": "string",
           "description": "The Amazon Standard Identification Number (ASIN) of the item."
+        },
+        "TransactionNumber": {
+          "type": "string",
+          "description": "The transaction number that is related to the adjustment."
         }
       },
       "description": "An item in an adjustment to the seller's account."
@@ -1477,7 +1517,8 @@
       }
     },
     "BigDecimal": {
-      "type": "number"
+      "type": "number",
+      "description": "Fields with a schema type of BigDecimal are a signed decimal number (for example CurrencyAmount)."
     },
     "ChargeComponent": {
       "type": "object",
@@ -1542,7 +1583,7 @@
         },
         "ChargeRefundTransactions": {
           "description": "The amount of the charge refund credit.",
-          "$ref": "#/definitions/ChargeRefundTransaction"
+          "$ref": "#/definitions/ChargeRefundTransactions"
         }
       },
       "description": "An event related to charge refund."
@@ -1567,6 +1608,13 @@
         }
       },
       "description": "The charge refund transaction."
+    },
+    "ChargeRefundTransactions": {
+      "type": "array",
+      "description": "A list of `ChargeRefund` transactions",
+      "items": {
+        "$ref": "#/definitions/ChargeRefundTransaction"
+      }
     },
     "CouponPaymentEvent": {
       "type": "object",
@@ -1628,14 +1676,15 @@
     },
     "Date": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time",
+      "description": "Fields with a schema type of date are in ISO 8601 date time format (for example GroupBeginDate)."
     },
     "DebtRecoveryEvent": {
       "type": "object",
       "properties": {
         "DebtRecoveryType": {
           "type": "string",
-          "description": "The debt recovery type.\n\nPossible values:\n\n* DebtPayment\n\n* DebtPaymentFailure\n\n*DebtAdjustment"
+          "description": "The debt recovery type.\n\nPossible values:\n\n* DebtPayment\n\n* DebtPaymentFailure\n\n* DebtAdjustment"
         },
         "RecoveryAmount": {
           "description": "The amount applied for recovery.",
@@ -1673,11 +1722,11 @@
           "$ref": "#/definitions/Currency"
         },
         "GroupBeginDate": {
-          "description": "The beginning date and time of the financial event group that contains the debt. In ISO 8601 date time format.",
+          "description": "The beginning date and time of the financial event group that contains the debt. In [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
           "$ref": "#/definitions/Date"
         },
         "GroupEndDate": {
-          "description": "The ending date and time of the financial event group that contains the debt. In ISO 8601 date time format.",
+          "description": "The ending date and time of the financial event group that contains the debt. In [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
           "$ref": "#/definitions/Date"
         }
       },
@@ -1712,6 +1761,13 @@
       }
     },
     "FailedAdhocDisbursementEventList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FailedAdhocDisbursementEvent"
+      },
+      "description": "A list of `FailedAdhocDisbursementEvent`s."
+    },
+    "FailedAdhocDisbursementEvent": {
       "type": "object",
       "properties": {
         "FundsTransfersType": {
@@ -1811,7 +1867,7 @@
           "description": "The status of the fund transfer."
         },
         "OriginalTotal": {
-          "description": "The total amount in the currency of the marketplace in which the transactions occurred.",
+          "description": "The total amount in the currency of the marketplace in which the transactions occurred. For a closed financial group, this is the total amount of a disbursement or a charge amount. For an open financial event group, this is the current balance.",
           "$ref": "#/definitions/Currency"
         },
         "ConvertedTotal": {
@@ -1819,7 +1875,7 @@
           "$ref": "#/definitions/Currency"
         },
         "FundTransferDate": {
-          "description": "The date and time when the disbursement or charge was initiated. Only present for closed settlements. In ISO 8601 date time format.",
+          "description": "The date and time when the disbursement or charge was initiated. Only present for closed settlements. In [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
           "$ref": "#/definitions/Date"
         },
         "TraceId": {
@@ -1835,11 +1891,11 @@
           "$ref": "#/definitions/Currency"
         },
         "FinancialEventGroupStart": {
-          "description": "The date and time at which the financial event group is opened. In ISO 8601 date time format.",
+          "description": "The date and time at which the financial event group is opened. In [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
           "$ref": "#/definitions/Date"
         },
         "FinancialEventGroupEnd": {
-          "description": "The date and time at which the financial event group is closed. In ISO 8601 date time format.",
+          "description": "The date and time at which the financial event group is closed. In [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
           "$ref": "#/definitions/Date"
         }
       },
@@ -2119,7 +2175,7 @@
           "description": "An order identifier that is specified by the seller."
         },
         "TransactionPostedDate": {
-          "description": "The date and time when the payment transaction is posted. In ISO 8601 date time format.",
+          "description": "The date and time when the payment transaction is posted. In [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
           "$ref": "#/definitions/Date"
         },
         "BusinessObjectType": {
@@ -2244,6 +2300,10 @@
         "TransactionType": {
           "type": "string",
           "description": "The type of removal order.\n\nPossible values:\n\n* WHOLESALE_LIQUIDATION"
+        },
+        "StoreName": {
+          "type": "string",
+          "description": "The name of the store where the event occurred."
         },
         "RemovalShipmentItemList": {
           "description": "A list of removal shipment items.",
@@ -2642,6 +2702,10 @@
         "ASIN": {
           "type": "string",
           "description": "The Amazon Standard Identification Number (ASIN) of the item."
+        },
+        "StoreName": {
+          "type": "string",
+          "description": "The name of the store where the event occurred."
         }
       },
       "description": "A service fee on the seller's account."
@@ -2667,6 +2731,10 @@
         "MarketplaceName": {
           "type": "string",
           "description": "The name of the marketplace where the event occurred."
+        },
+        "StoreName": {
+          "type": "string",
+          "description": "The name of the store where the event occurred."
         },
         "OrderChargeList": {
           "description": "A list of order-level charges. These charges are applicable to Multi-Channel Fulfillment COD orders.",
@@ -2829,7 +2897,7 @@
           "$ref": "#/definitions/Currency"
         },
         "TransactionCreationDate": {
-          "description": "The date and time that the credit transaction was created, in ISO 8601 date time format.",
+          "description": "The date and time that the credit transaction was created, in [ISO 8601](https://developer-docs.amazon.com/sp-api/docs/iso-8601) date time format.",
           "$ref": "#/definitions/Date"
         }
       },
@@ -2969,6 +3037,13 @@
       "description": "A list of information about trial shipment financial events."
     },
     "ValueAddedServiceChargeEventList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ValueAddedServiceChargeEvent"
+      },
+      "description": "A list of `ValueAddedServiceCharge` events."
+    },
+    "ValueAddedServiceChargeEvent": {
       "type": "object",
       "properties": {
         "TransactionType": {
