@@ -27,7 +27,7 @@
     "/fba/inbound/v1/eligibility/itemPreview": {
       "get": {
         "tags": [
-          "fbaInboundEligibility"
+          "fbaInbound"
         ],
         "description": "This operation gets an eligibility preview for an item that you specify. You can specify the type of eligibility preview that you want (INBOUND or COMMINGLING). For INBOUND previews, you can specify the marketplace in which you want to determine the item's eligibility.\n\n**Usage Plan:**\n\n| Rate (requests per second) | Burst |\n| ---- | ---- |\n| 1 | 1 |\n\nThe `x-amzn-RateLimit-Limit` response header returns the usage plan rate limits that were applied to the requested operation, when available. The table above indicates the default rate and burst values for this operation. Selling partners whose business demands require higher throughput may see higher rate and burst values than those shown here. For more information, see [Usage Plans and Rate Limits in the Selling Partner API](https://developer-docs.amazon.com/sp-api/docs/usage-plans-and-rate-limits-in-the-sp-api).",
         "operationId": "getItemEligibilityPreview",
@@ -85,7 +85,7 @@
               },
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -122,7 +122,7 @@
               },
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -159,7 +159,7 @@
               },
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -192,7 +192,7 @@
             "headers": {
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -229,7 +229,7 @@
               },
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -266,7 +266,7 @@
               },
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -303,7 +303,7 @@
               },
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -340,7 +340,7 @@
               },
               "x-amzn-RequestId": {
                 "type": "string",
-                "description": "Unique request reference ID."
+                "description": "Unique request reference identifier."
               }
             },
             "x-amzn-api-sandbox": {
@@ -467,6 +467,7 @@
               "FBA_INB_0103",
               "FBA_INB_0104",
               "FBA_INB_0197",
+              "FBA_INB_0342",
               "UNKNOWN_INB_ERROR_CODE"
             ],
             "x-docgen-enum-table-extension": [
@@ -621,6 +622,10 @@
               {
                 "value": "FBA_INB_0197",
                 "description": "Item requires safety and compliance documentation. Orders for this product cannot be fulfilled by FBA without required safety and compliance documentation."
+              },
+              {
+                "value": "FBA_INB_0342",
+                "description": "This offer is no longer eligible for sending to Amazon as it is using a manufacturer barcode that has been removed from the ASIN. Please [fix your product](https://sellercentral.amazon.com/fixyourproducts) before you send this product to Amazon. Alternatively, please remove the product from the shipment and re-create the offer with an Amazon barcode and label your units."
               },
               {
                 "value": "UNKNOWN_INB_ERROR_CODE",
