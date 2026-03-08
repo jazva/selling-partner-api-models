@@ -1,15 +1,68 @@
 #!/bin/bash
+#
+# Builds the SP-API Java client library from OpenAPI models.
+#
+# Produces two JARs:
+#   1. sellingpartnerapi-aa-java-<AA_VERSION>.jar  (auth library)
+#   2. selling-partner-api-<API_VERSION>.jar       (all SP-API clients)
+#
+# Versions are read from pom.xml files — no hardcoded versions in this script.
+#
+# JARs are installed to:
+#   - This repo's lib/ (needed for the API build to find the AA dependency)
+#   - Any sibling project directories (../*) that have a pom.xml referencing
+#     selling-partner-api or sellingpartnerapi-aa-java
+#
+# Usage:
+#   cd generate && bash compile.sh
+#
 
-cd ..
+set -e
+
+# Resolve paths relative to this script, so it works from any working directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
+# Read versions from the pom.xml files (single source of truth)
+AA_VERSION=$(grep -m1 '<version>' clients/sellingpartner-api-aa-java/pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+API_VERSION=$(grep -m1 '<version>' generate/pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+
+echo "=========================================="
+echo "  AA library version:  $AA_VERSION"
+echo "  API client version:  $API_VERSION"
+echo "=========================================="
+
+# Discover sibling project directories that use these JARs
+INSTALL_TARGETS=()
+for dir in "$REPO_ROOT"/../*/; do
+    [ -d "$dir" ] || continue
+    [ "$dir" = "$REPO_ROOT/" ] && continue
+    if [ -f "$dir/pom.xml" ] && grep -q "selling-partner-api\|sellingpartnerapi-aa-java" "$dir/pom.xml" 2>/dev/null; then
+        resolved="$(cd "$dir" && pwd)"
+        INSTALL_TARGETS+=("$resolved")
+        echo "  Found consumer: $resolved"
+    fi
+done
+
+if [ ${#INSTALL_TARGETS[@]} -eq 0 ]; then
+    echo "  No sibling projects found that reference SP-API JARs."
+    echo "  JARs will only be installed to this repo's lib/."
+fi
+echo ""
+
+# ============================================================
+# Step 1: Generate Java code from all API models
+# ============================================================
+echo ">>> Generating Java code from API models..."
 rm -rf generated
 mkdir -p generated/spapi/src/main/java/com/amazon/sellingpartner
 
 basePackage="com.amazon.sellingpartner"
-#models=(models/*/*)
 
 generate () {
     java -jar generate/swagger-codegen-cli.jar generate \
-          --input-spec $2 \
+          --input-spec "$2" \
           --lang java \
           --template-dir clients/sellingpartner-api-aa-java/resources/swagger-codegen/templates \
           --output generated/spapi \
@@ -19,8 +72,9 @@ generate () {
           --group-id "com.amazon" \
           --artifact-id "selling-partner-api" \
           --additional-properties dateLibrary=java8
-
 }
+
+# Core APIs
 generate "awd" "models/amazon-warehousing-and-distribution-model/awd_2024-05-09.json"
 generate "aplus" "models/aplus-content-api-model/aplusContent_2020-11-01.json"
 generate "applicaitons" "models/application-management-api-model/application_2023-11-30.json"
@@ -57,6 +111,8 @@ generate "solicitations" "models/solicitations-api-model/solicitations.json"
 generate "supplysources" "models/supply-sources-api-model/supplySources_2020-07-01.json"
 generate "tokens" "models/tokens-api-model/tokens_2021-03-01.json"
 generate "uploads" "models/uploads-api-model/uploads_2020-11-01.json"
+
+# Vendor / Direct Fulfillment APIs
 generate "dfinventory" "models/vendor-direct-fulfillment-inventory-api-model/vendorDirectFulfillmentInventoryV1.json"
 generate "dforders" "models/vendor-direct-fulfillment-orders-api-model/vendorDirectFulfillmentOrders_2021-12-28.json"
 generate "dfpayments" "models/vendor-direct-fulfillment-payments-api-model/vendorDirectFulfillmentPaymentsV1.json"
@@ -68,7 +124,7 @@ generate "vendororders" "models/vendor-orders-api-model/vendorOrders.json"
 generate "vendorshipments" "models/vendor-shipments-api-model/vendorShipments.json"
 generate "vendortransactionstatus" "models/vendor-transaction-status-api-model/vendorTransactionStatus.json"
 
-# New APIs added in 2.0.0
+# APIs added in 2.0.0
 generate "appintegrations" "models/application-integrations-api-model/appIntegrations-2024-04-01.json"
 generate "customerfeedback" "models/customer-feedback-api-model/customerFeedback_2024-06-01.json"
 generate "deliverybyamazon" "models/delivery-by-amazon/deliveryShipmentInvoiceV2022-07-01.json"
@@ -78,34 +134,44 @@ generate "externalfulfillmentshipments" "models/external-fulfillment/externalFul
 generate "invoices" "models/invoices-api-model/InvoicesApiModel_2024-06-19.json"
 generate "sellerwallet" "models/seller-wallet-api-model/sellerWallet_2024-03-01.json"
 generate "vehicles" "models/vehicles-api-model/vehicles_2024-11-01.json"
-#
-## For every model in the models/ directory, and all subdirectories:
-#for model in "${models[@]}"
-#do
-#    # Generate a client library
-#    # --input-spec $model 			:: use the current model file
-#    # --lang java 				:: generate a Java library
-#    # --template-dir .../ 			:: use Amazon's premade Java template files
-#    # --output ../spapi 			:: put the generated library in ../spapi
-#    # --invoker-package "..." 			:: put the generated code in the given package
-#    # --api-package "..." 			:: put the generated api code in the given package
-#    # --model-package "..." 			:: put the generated model code in the given package
-#    # --group-id "..." 				:: package metadata
-#    # --artifact-id "..." 			:: package metadata
-#    # --additional-properties dateLibrary=java8 :: Use Java 8 date libraries
-#done
-#
 
-
-# Build the AA (auth) library - must be done before the main API build
+# ============================================================
+# Step 2: Build the AA (auth) library
+# ============================================================
+echo ""
+echo ">>> Building AA library v${AA_VERSION}..."
 cd clients/sellingpartner-api-aa-java
 mvn clean package -DskipTests
-mvn install:install-file -Dfile=target/sellingpartnerapi-aa-java-3.0.1.jar -DgroupId=com.amazon.sellingpartnerapi -DartifactId=sellingpartnerapi-aa-java -Dversion=3.0.1 -Dpackaging=jar -DlocalRepositoryPath=/Users/levon/Projects/selling-partner-api-models/lib
-mvn install:install-file -Dfile=target/sellingpartnerapi-aa-java-3.0.1.jar -DgroupId=com.amazon.sellingpartnerapi -DartifactId=sellingpartnerapi-aa-java -Dversion=3.0.1 -Dpackaging=jar -DlocalRepositoryPath=/Users/levon/Projects/jazva/lib
-mvn install:install-file -Dfile=target/sellingpartnerapi-aa-java-3.0.1.jar -DgroupId=com.amazon.sellingpartnerapi -DartifactId=sellingpartnerapi-aa-java -Dversion=3.0.1 -Dpackaging=jar -DlocalRepositoryPath=/Users/levon/Projects/jazva8/lib
-cd ../..
 
-# Copy okhttp3-compatible utility files over swagger-codegen's okhttp2 versions
+AA_JAR="target/sellingpartnerapi-aa-java-${AA_VERSION}.jar"
+
+# Install to this repo's lib (needed as dependency for API build)
+mvn install:install-file \
+    -Dfile="$AA_JAR" \
+    -DgroupId=com.amazon.sellingpartnerapi \
+    -DartifactId=sellingpartnerapi-aa-java \
+    -Dversion="$AA_VERSION" \
+    -Dpackaging=jar \
+    -DlocalRepositoryPath="$REPO_ROOT/lib"
+
+# Install to discovered consumer projects
+for target in "${INSTALL_TARGETS[@]}"; do
+    echo "  Installing AA library to $target/lib"
+    mvn install:install-file \
+        -Dfile="$AA_JAR" \
+        -DgroupId=com.amazon.sellingpartnerapi \
+        -DartifactId=sellingpartnerapi-aa-java \
+        -Dversion="$AA_VERSION" \
+        -Dpackaging=jar \
+        -DlocalRepositoryPath="$target/lib"
+done
+cd "$REPO_ROOT"
+
+# ============================================================
+# Step 3: Copy okhttp3-compatible files + build API JAR
+# ============================================================
+echo ""
+echo ">>> Building API client v${API_VERSION}..."
 cp -a generate/JSON.java generated/spapi/src/main/java/com/amazon/sellingpartner/
 cp -a generate/ProgressResponseBody.java generated/spapi/src/main/java/com/amazon/sellingpartner/
 cp -a generate/ProgressRequestBody.java generated/spapi/src/main/java/com/amazon/sellingpartner/
@@ -114,8 +180,41 @@ cp -a generate/HttpBasicAuth.java generated/spapi/src/main/java/com/amazon/selli
 cp -r generate/pom.xml generated/spapi
 cd generated/spapi
 mvn clean package
+cd "$REPO_ROOT"
 
-# install into jazva/lib and jazva8/lib
-cd ../..
-mvn install:install-file -Dfile=generated/spapi/target/selling-partner-api-2.0.1.jar -Dsources=generated/spapi/target/selling-partner-api-2.0.1-sources.jar -Djavadoc=generated/spapi/target/selling-partner-api-2.0.1-javadoc.jar -DgroupId=com.amazon.sellingpartnerapi -DartifactId=selling-partner-api -Dversion=2.0.1 -Dpackaging=jar -DlocalRepositoryPath=/Users/levon/Projects/jazva/lib
-mvn install:install-file -Dfile=generated/spapi/target/selling-partner-api-2.0.1.jar -Dsources=generated/spapi/target/selling-partner-api-2.0.1-sources.jar -Djavadoc=generated/spapi/target/selling-partner-api-2.0.1-javadoc.jar -DgroupId=com.amazon.sellingpartnerapi -DartifactId=selling-partner-api -Dversion=2.0.1 -Dpackaging=jar -DlocalRepositoryPath=/Users/levon/Projects/jazva8/lib
+API_JAR="generated/spapi/target/selling-partner-api-${API_VERSION}.jar"
+API_SOURCES="generated/spapi/target/selling-partner-api-${API_VERSION}-sources.jar"
+API_JAVADOC="generated/spapi/target/selling-partner-api-${API_VERSION}-javadoc.jar"
+
+# ============================================================
+# Step 4: Install API JAR to consumer projects
+# ============================================================
+for target in "${INSTALL_TARGETS[@]}"; do
+    echo "  Installing API client to $target/lib"
+    mvn install:install-file \
+        -Dfile="$API_JAR" \
+        -Dsources="$API_SOURCES" \
+        -Djavadoc="$API_JAVADOC" \
+        -DgroupId=com.amazon.sellingpartnerapi \
+        -DartifactId=selling-partner-api \
+        -Dversion="$API_VERSION" \
+        -Dpackaging=jar \
+        -DlocalRepositoryPath="$target/lib"
+done
+
+echo ""
+echo "=========================================="
+echo "  BUILD COMPLETE"
+echo "  AA library:  sellingpartnerapi-aa-java-${AA_VERSION}.jar"
+echo "  API client:  selling-partner-api-${API_VERSION}.jar"
+echo ""
+echo "  Installed to:"
+echo "    - $REPO_ROOT/lib (AA only)"
+for target in "${INSTALL_TARGETS[@]}"; do
+    echo "    - $target/lib (both)"
+done
+echo ""
+echo "  Next: update consumer pom.xml versions to"
+echo "    sellingpartnerapi-aa-java: $AA_VERSION"
+echo "    selling-partner-api:      $API_VERSION"
+echo "=========================================="
